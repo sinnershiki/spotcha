@@ -1,0 +1,15 @@
+[Unit]
+Description=CoreKeeper Dedicated Server
+After=network.target
+
+[Service]
+Type=simple
+User=corekeeper-server
+WorkingDirectory=/home/corekeeper-server
+ExecStart=/home/corekeeper-server/_launch.sh -ip 0.0.0.0
+KillMode=process
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
