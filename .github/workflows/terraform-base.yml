@@ -1,0 +1,99 @@
+# Automate Terraform with GitHub Actions
+# https://learn.hashicorp.com/tutorials/terraform/github-actions
+
+name: 【Base】Spot Games Terraform
+
+on:
+  workflow_dispatch:
+
+env:
+  working_directory: terraform/base
+  terraform_parallelism: '50'
+  terraform_lock_timeout: '30s'
+  tflint_version: 'v0.39.0'
+  tfsec_version: 'v1.26.3'
+  tfcmt_version: 'v3.3.0'
+  project_id: ${{ vars.PROJECT_ID }}
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: terraform validate for ops
+        uses: ./.github/actions/terraform-validate
+        with:
+          working_directory: ${{ env.working_directory }}
+          tflint_version: ${{ env.tflint_version }}
+          tfsec_version: ${{ env.tfsec_version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  plan:
+    name: Plan
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    timeout-minutes: 30
+    outputs:
+      changes: ${{ steps.terraform_plan.outputs.changes }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: terraform plan for ops
+        uses: ./.github/actions/terraform-plan
+        id: terraform_plan
+        with:
+          working_directory: ${{ env.working_directory }}
+          terraform_parallelism: ${{ env.terraform_parallelism }}
+          terraform_lock_timeout: ${{ env.terraform_lock_timeout }}
+          tfcmt_version: ${{ env.tfcmt_version }}
+          target: ${{ env.working_directory }}
+          project_id: ${{ env.project_id }}
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  apply:
+    name: Apply
+    needs: plan
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: terraform apply for ops
+        uses: ./.github/actions/terraform-apply
+        with:
+          working_directory: ${{ env.working_directory }}
+          terraform_parallelism: ${{ env.terraform_parallelism }}
+          terraform_lock_timeout: ${{ env.terraform_lock_timeout }}
+          project_id: ${{ env.project_id }}
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

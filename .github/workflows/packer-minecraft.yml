@@ -1,0 +1,53 @@
+name: Packer Minecraft
+
+on:
+  workflow_dispatch:
+
+env:
+  working_directory: packer/minecraft/
+  project_id: ${{ vars.PROJECT_ID }}
+
+jobs:
+  minecraft-validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Packer Validate
+        uses: ./.github/actions/packer-validate
+        with:
+          packer_file: minecraft.pkr.hcl
+          working_directory: ${{ env.working_directory }}
+
+  minecraft-build:
+    needs: minecraft-validate
+    if: github.event_name == 'workflow_dispatch'
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Packer Build
+        uses: ./.github/actions/packer-build
+        with:
+          packer_file: minecraft.pkr.hcl
+          working_directory: ${{ env.working_directory }}
+          project_id: ${{ env.project_id }}
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}

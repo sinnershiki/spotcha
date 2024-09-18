@@ -1,0 +1,26 @@
+name: "packer validate"
+description: "terraform plan"
+inputs:
+  packer_file:
+    description: "packer file"
+    required: true
+  working_directory:
+    description: "working_directory"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup `packer`
+      uses: hashicorp/setup-packer@main
+      id: setup
+      with:
+        version: "latest"
+    - name: Packer Plugin Install
+      run: packer init ${{ inputs.packer_file }}
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+    - name: Packer Validate
+      run: packer validate ${{ inputs.packer_file }}
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}

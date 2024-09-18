@@ -1,0 +1,18 @@
+[Unit]
+Description=Satisfactory Dedicated Server
+Wants=network-online.target
+After=syslog.target network.target nss-lookup.target network-online.target
+
+[Service]
+ExecStartPre=/usr/games/steamcmd +force_install_dir /home/satisfactory-server +login anonymous +app_update 1690800 validate +quit
+ExecStart=/home/satisfactory-server/FactoryServer.sh
+LimitNOFILE=100000
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s INT $MAINPID
+Restart=always
+TimeoutStartSec=300
+User=satisfactory-server
+Group=satisfactory-server
+
+[Install]
+WantedBy=multi-user.target

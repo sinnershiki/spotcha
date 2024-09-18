@@ -1,0 +1,17 @@
+[Unit]
+Description=Minecraft Server
+Wants=network-online.target
+After=syslog.target network.target nss-lookup.target network-online.target
+
+[Service]
+ExecStart=/home/minecraft-server/startup.sh
+LimitNOFILE=100000
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s INT $MAINPID
+Restart=always
+TimeoutStartSec=300
+User=minecraft-server
+Group=minecraft-server
+
+[Install]
+WantedBy=multi-user.target

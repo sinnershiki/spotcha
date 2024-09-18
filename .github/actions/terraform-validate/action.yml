@@ -1,0 +1,48 @@
+name: "terraform validate"
+description: "terraform validate"
+inputs:
+  working_directory:
+    description: "working_directory"
+    required: true
+  tflint_version:
+    description: "tflint_version"
+    required: true
+  GITHUB_TOKEN:
+    description: "github token"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Detect Terraform Version
+      run: printf "terraform_version=%s" $(cat .terraform-version) >> $GITHUB_ENV
+      working-directory: ${{ inputs.working_directory }}
+      shell: bash
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.terraform_version }}
+    - name: Terraform Format
+      run: terraform fmt -check
+      shell: bash
+    - name: Terraform Init
+      run: terraform init -backend=false
+      shell: bash
+    - name: Terraform Validate
+      run: terraform validate
+      shell: bash
+    - name: tflint
+      if: github.event_name == 'pull_request'
+      uses: reviewdog/action-tflint@master
+      with:
+        tflint_version: ${{ inputs.tflint_version }}
+        github_token: ${{ inputs.GITHUB_TOKEN }}
+        working_directory: ${{ inputs.working_directory }}
+        reporter: github-pr-review
+        fail_on_error: true
+        filter_mode: file
+        tflint_init: true
+    - name: EditorConfig
+      uses: snow-actions/eclint@v1.0.1
+      with:
+        args: 'check'
