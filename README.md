@@ -16,6 +16,12 @@ Spot game server and manager chat bot
 
 ## How to use
 
+作ったVMをDiscordであげたり落としたりすることで費用節約しつつサーバを管理できます
+
+<img width="518" alt="スクリーンショット 2024-09-18 11 45 13" src="https://github.com/user-attachments/assets/c06f180b-daa8-4a4e-a21b-7781284ae946">
+
+VMの作成はterraform or 手動を想定。将来的にはBot経由でそれもできるようにするかもしれない。
+
 
 ##　準備
 
