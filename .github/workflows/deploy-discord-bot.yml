@@ -1,0 +1,42 @@
+name: Deploy Cloud Function
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      DISCORD_PUB_KEY_SECRETS_NAME: projects/<project number>/secrets/<secret name>
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
+
+      - name: Deploy Cloud Function
+        run: |
+          gcloud functions deploy discord-bot \
+            --gen2 \
+            --runtime go121 \
+            --trigger-http \
+            --allow-unauthenticated \
+            --region asia-northeast1 \
+            --entry-point DiscordBot \
+            --run-service-account func-discord-bot@${{ vars.PROJECT_ID }}.iam.gserviceaccount.com \
+            --source discord-bot/. \
+            --set-secrets DISCORD_PUBLIC_KEY=${{ env.DISCORD_PUB_KEY_SECRETS_NAME }}:1 \
+            --set-env-vars PROJECT_ID=${{ vars.PROJECT_ID }},LOG_LEVEL=DEBUG

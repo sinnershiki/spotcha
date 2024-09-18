@@ -1,0 +1,38 @@
+name: "packer build"
+description: "terraform plan"
+inputs:
+  packer_file:
+    description: "packer file"
+    required: true
+  working_directory:
+    description: "working_directory"
+    required: true
+  project_id:
+    description: "project_id"
+    required: true
+  GCP_CREDENTIALS:
+    description: "gcp credential"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Authanticate to Google Cloud Platform
+      uses: google-github-actions/auth@v2
+      with:
+        project_id: ${{ inputs.project_id }}
+        credentials_json: ${{ inputs.GCP_CREDENTIALS }}
+    - name: Setup `packer`
+      uses: hashicorp/setup-packer@main
+      id: setup
+      with:
+        version: "latest"
+    - name: Packer Plugin Install
+      run: packer init ${{ inputs.packer_file }}
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+    - name: Packer Build
+      run: packer build ${{ inputs.packer_file }}
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+

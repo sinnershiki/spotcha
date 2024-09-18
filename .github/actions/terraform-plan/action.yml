@@ -1,0 +1,76 @@
+name: "terraform plan"
+description: "terraform plan"
+inputs:
+  working_directory:
+    description: "working_directory"
+    required: true
+  terraform_parallelism:
+    description: "terraform_parallelism"
+    required: true
+  terraform_lock_timeout:
+    description: "terraform_lock_timeout"
+    required: true
+  tfcmt_version:
+    description: "tfcmt_version"
+    required: true
+  project_id:
+    description: "project_id"
+    required: true
+  target:
+    description: "target"
+    required: false
+    default: "terraform"
+  GCP_CREDENTIALS:
+    description: "gcp credential"
+    required: true
+  GITHUB_TOKEN:
+    description: "github token"
+    required: true
+outputs:
+  changes:
+    description: "terraform plan result"
+    value: ${{ steps.detect_changes.outputs.changes }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Detect Terraform Version
+      run: printf "terraform_version=%s" $(cat .terraform-version) >> $GITHUB_ENV
+      working-directory: ${{ inputs.working_directory }}
+      shell: bash
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.terraform_version }}
+    - name: Setup tfcmt
+      uses: shmokmt/actions-setup-tfcmt@v2.1.0
+      with:
+        version: ${{ inputs.tfcmt_version }}
+    - name: Authanticate to Google Cloud Platform
+      uses: google-github-actions/auth@v2
+      with:
+        project_id: ${{ inputs.project_id }}
+        credentials_json: ${{ inputs.GCP_CREDENTIALS }}
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ${{ inputs.working_directory }}
+      shell: bash
+    - name: Terraform Plan (with RP comment)
+      if: github.event_name == 'pull_request'
+      run: tfcmt -var "target:${{ inputs.target }}" plan -patch -- terraform plan -input=false -parallelism=${{ inputs.terraform_parallelism }} -lock-timeout=${{ inputs.terraform_lock_timeout }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      working-directory: ${{ inputs.working_directory }}
+      shell: bash
+    - name: Terraform Plan
+      id: plan
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform plan -input=false -parallelism=${{ inputs.terraform_parallelism }} -lock-timeout=${{ inputs.terraform_lock_timeout }}
+      working-directory: ${{ inputs.working_directory }}
+      shell: bash
+    - name: Detect changes
+      id: detect_changes
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && !contains(steps.plan.outputs.stdout, 'No changes.')
+      run: echo "changes=true" >> $GITHUB_OUTPUT
+      working-directory: ${{ inputs.working_directory }}
+      shell: bash
