@@ -23,7 +23,7 @@ Spot game server and manager chat bot
 VMの作成はterraform or 手動を想定。将来的にはBot経由でそれもできるようにするかもしれない。
 
 
-##　準備
+## 準備
 
 ### 1. Google Cloud編
 
