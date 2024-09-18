@@ -4,14 +4,7 @@
 name: 【Games】Spot Games Terraform
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'terraform/games/**'
-  pull_request:
-    paths:
-      - 'terraform/games/**'
+  workflow_dispatch:
 
 env:
   working_directory: terraform/games

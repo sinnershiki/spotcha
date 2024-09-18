@@ -1,14 +1,6 @@
 name: Packer Satisfactory
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packer/satisfactory/**'
-  pull_request:
-    paths:
-      - 'packer/satisfactory/**'
   workflow_dispatch:
 
 env:

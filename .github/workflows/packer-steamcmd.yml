@@ -1,14 +1,6 @@
 name: Packer SteamCMD
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packer/steamcmd/**'
-  pull_request:
-    paths:
-      - 'packer/steamcmd/**'
   workflow_dispatch:
 
 env:

@@ -4,14 +4,7 @@
 name: 【Base】Spot Games Terraform
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'terraform/base/**'
-  pull_request:
-    paths:
-      - 'terraform/base/**'
+  workflow_dispatch:
 
 env:
   working_directory: terraform/base

@@ -1,14 +1,6 @@
 name: Packer CoreKeeper
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packer/corekeeper/**'
-  pull_request:
-    paths:
-      - 'packer/corekeeper/**'
   workflow_dispatch:
 
 env:

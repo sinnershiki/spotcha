@@ -1,14 +1,6 @@
 name: Packer Minecraft
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packer/minecraft/**'
-  pull_request:
-    paths:
-      - 'packer/minecraft/**'
   workflow_dispatch:
 
 env:
